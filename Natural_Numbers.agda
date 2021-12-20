@@ -13,21 +13,21 @@ zero + x = x
 successor y + x = successor (y + x)
 
 _ : 2 + 3 ≡ 5
-_ = refl
+_ = reflexivity
 
 _×_ : ℕ → ℕ → ℕ
 zero × x = zero
 successor y × x = x + (y × x)
 
 _ : 2 × 3 ≡ 6
-_ = refl
+_ = reflexivity
 
 _^_ : ℕ → ℕ → ℕ
 x ^ zero = 1
 x ^ successor y = x × (x ^ y)
 
 _ : 2 ^ 10 ≡ 1024
-_ = refl
+_ = reflexivity
 
 data ℕ₂ : Set where
   ₂ : ℕ₂
@@ -43,17 +43,17 @@ successor₂ (x I) = successor₂ x ·
 successor₂ (x ·) = x I
 
 _ : successor₂ (₂ I I I) ≡ ₂ I · · ·
-_ = refl
+_ = reflexivity
 
 _ : successor₂ (₂ I · ·) ≡ ₂ I · I
-_ = refl
+_ = reflexivity
 
 ℕ→ℕ₂ : ℕ → ℕ₂
 ℕ→ℕ₂ zero = ₂
 ℕ→ℕ₂ (successor x) = successor₂ (ℕ→ℕ₂ x)
 
 _ : ℕ→ℕ₂ 5 ≡ ₂ I · I
-_ = refl
+_ = reflexivity
 
 -- ℕ₂→ℕ : ℕ₂ → ℕ
 -- ℕ₂→ℕ ₂ = zero
@@ -67,20 +67,20 @@ _ = refl
 ℕ₂→ℕ (x I) = successor ((ℕ₂→ℕ x) × 2)
 
 _ : ℕ₂→ℕ (₂ I · I) ≡ 5
-_ = refl
+_ = reflexivity
 
 +associative : ∀ (x y z : ℕ) → (x + y) + z ≡ x + (y + z)
-+associative zero y z = refl
++associative zero y z = reflexivity
 +associative (successor x) y z = begin (successor x + y) + z
   ≡⟨ congruence successor (+associative x y z) ⟩ successor (x + (y + z)) ∎
 
 +identity : ∀ (x : ℕ) → x + zero ≡ x
-+identity zero = refl
++identity zero = reflexivity
 +identity (successor x) = begin successor (x + zero)
   ≡⟨ congruence successor (+identity x) ⟩ successor x ∎
 
 +successor-move : ∀ (x y : ℕ) → x + successor y ≡ successor (x + y)
-+successor-move zero y = refl
++successor-move zero y = reflexivity
 +successor-move (successor x) y = begin successor x + successor y
   ≡⟨ congruence successor (+successor-move x y) ⟩ successor (successor x + y) ∎
 
@@ -93,8 +93,14 @@ _ = refl
 infixl 6 _+_
 infixl 7 _×_
 
++-swap : ∀ (x y z : ℕ) → x + (y + z) ≡ y + (x + z)
++-swap x y z rewrite symmetry (+associative x y z)
+  | +commutative x y
+  | +associative y x z
+  = reflexivity
+
 ×+distributive : ∀ (x y z : ℕ) → x × (y + z) ≡ x × y + x × z
-×+distributive zero y z = refl
+×+distributive zero y z = reflexivity
 ×+distributive (successor x) y z = begin
   successor x × (y + z) ≡⟨⟩
   y + z + x × (y + z) ≡⟨ +associative y z (x × (y + z)) ⟩
