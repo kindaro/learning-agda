@@ -15,6 +15,11 @@ successor y + x = successor (y + x)
 _ : 2 + 3 ≡ 5
 _ = reflexivity
 
+_∸_ : ℕ → ℕ → ℕ
+x ∸ zero = x
+zero ∸ successor y = zero
+successor x ∸ successor y = x ∸ y
+
 _×_ : ℕ → ℕ → ℕ
 zero × x = zero
 successor y × x = x + (y × x)
@@ -90,6 +95,7 @@ _ = reflexivity
   ≡⟨ +successor-move x y ⟩ successor (x + y)
   ≡⟨ congruence successor (+commutative x y) ⟩ successor (y + x) ∎
 
+infixl 6 _∸_
 infixl 6 _+_
 infixl 7 _×_
 
@@ -167,3 +173,54 @@ right-absorption-of-× (successor x) = begin
   x + x × y ≡⟨ congruence (λ e → x + e) (×-is-commutative x y) ⟩
   x + y × x ≡⟨⟩
   successor y × x ∎
+
+∸-of-zero : ∀ (x : ℕ) → zero ∸ x ≡ zero
+∸-of-zero zero = reflexivity
+∸-of-zero (successor _) = reflexivity
+
+∸-+-associative : ∀ (x y z : ℕ) → x ∸ y ∸ z ≡ x ∸ (y + z)
+∸-+-associative x zero z = reflexivity
+∸-+-associative zero (successor y) zero = reflexivity
+∸-+-associative zero (successor y) (successor z) = reflexivity
+∸-+-associative (successor x) (successor y) z = begin
+  successor x ∸ successor y ∸ z ≡⟨⟩
+  x ∸ y ∸ z ≡⟨ ∸-+-associative x y z ⟩
+  x ∸ (y + z) ∎
+
+^-distributes-over-×-on-the-right : ∀ (x y z : ℕ) → (x × y) ^ z ≡ x ^ z × y ^ z
+^-distributes-over-×-on-the-right x y zero = reflexivity
+^-distributes-over-×-on-the-right x y (successor z) = begin
+  (x × y) ^ successor z ≡⟨⟩
+  x × y × (x × y) ^ z ≡⟨ congruence (λ e → x × y × e) (^-distributes-over-×-on-the-right x y z) ⟩
+  x × y × (x ^ z × y ^ z) ≡⟨ ×-is-associative (x × y) (x ^ z) (y ^ z) ⟩
+  x × y × x ^ z × y ^ z ≡⟨ congruence (λ e → e × y ^ z) (symmetry (×-is-associative x y (x ^ z))) ⟩
+  x × (y × x ^ z) × y ^ z ≡⟨ congruence (λ e → x × e × y ^ z) (×-is-commutative y (x ^ z)) ⟩
+  x × (x ^ z × y) × y ^ z ≡⟨ congruence (λ e → e × y ^ z) (×-is-associative x (x ^ z) y) ⟩
+  x ^ successor z × y × y ^ z ≡⟨ symmetry (×-is-associative (x ^ successor z) y (y ^ z)) ⟩
+  x ^ successor z × y ^ successor z ∎
+
+^-distributes-over-+-into-×-on-the-left : ∀ (x y z : ℕ) → x ^ (y + z) ≡ x ^ y × x ^ z
+^-distributes-over-+-into-×-on-the-left x zero z = begin
+  x ^ (zero + z) ≡⟨⟩
+  x ^ z ≡⟨ symmetry (left-identity-of-× (x ^ z)) ⟩
+  1 × x ^ z ≡⟨⟩
+  x ^ zero × x ^ z ∎
+^-distributes-over-+-into-×-on-the-left x (successor y) z = begin
+  x ^ (successor y + z) ≡⟨⟩
+  x × x ^ (y + z) ≡⟨ congruence (λ e → x × e) (^-distributes-over-+-into-×-on-the-left x y z) ⟩
+  x × (x ^ y × x ^ z) ≡⟨ ×-is-associative x (x ^ y) (x ^ z) ⟩
+  x × x ^ y × x ^ z ≡⟨⟩
+  x ^ successor y × x ^ z ∎
+
+^-×-associative : ∀ (x y z : ℕ) → (x ^ y) ^ z ≡ x ^ (y × z)
+^-×-associative x y zero = begin
+  (x ^ y) ^ zero ≡⟨⟩
+  1 ≡⟨⟩
+  x ^ zero ≡⟨ congruence (λ e → x ^ e) (symmetry (right-absorption-of-× y)) ⟩
+  x ^ (y × zero) ∎
+^-×-associative x y (successor z) = begin
+  (x ^ y) ^ successor z ≡⟨⟩
+  x ^ y × (x ^ y) ^ z ≡⟨ congruence (λ e → x ^ y × e) (^-×-associative x y z) ⟩
+  x ^ y × x ^ (y × z) ≡⟨ symmetry (^-distributes-over-+-into-×-on-the-left x y (y × z)) ⟩
+  x ^ (y + y × z) ≡⟨ congruence (λ e → x ^ e) (symmetry (×-move y z)) ⟩
+  x ^ (y × successor z) ∎
