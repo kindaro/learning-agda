@@ -1,7 +1,6 @@
 module Natural_Numbers where
 
-open import Relation.Binary.PropositionalEquality
-open ≡-Reasoning
+open import Prelude
 
 data ℕ : Set where
   zero : ℕ
@@ -73,23 +72,23 @@ _ = refl
 +associative : ∀ (x y z : ℕ) → (x + y) + z ≡ x + (y + z)
 +associative zero y z = refl
 +associative (successor x) y z = begin (successor x + y) + z
-  ≡⟨ cong successor (+associative x y z) ⟩ successor (x + (y + z)) ∎
+  ≡⟨ congruence successor (+associative x y z) ⟩ successor (x + (y + z)) ∎
 
 +identity : ∀ (x : ℕ) → x + zero ≡ x
 +identity zero = refl
 +identity (successor x) = begin successor (x + zero)
-  ≡⟨ cong successor (+identity x) ⟩ successor x ∎
+  ≡⟨ congruence successor (+identity x) ⟩ successor x ∎
 
 +successor-move : ∀ (x y : ℕ) → x + successor y ≡ successor (x + y)
 +successor-move zero y = refl
 +successor-move (successor x) y = begin successor x + successor y
-  ≡⟨ cong successor (+successor-move x y) ⟩ successor (successor x + y) ∎
+  ≡⟨ congruence successor (+successor-move x y) ⟩ successor (successor x + y) ∎
 
 +commutative : ∀ (x y : ℕ) → x + y ≡ y + x
 +commutative x zero = begin x + zero ≡⟨ +identity x ⟩ zero + x ∎
 +commutative x (successor y) = begin x + successor y
   ≡⟨ +successor-move x y ⟩ successor (x + y)
-  ≡⟨ cong successor (+commutative x y) ⟩ successor (y + x) ∎
+  ≡⟨ congruence successor (+commutative x y) ⟩ successor (y + x) ∎
 
 infixl 6 _+_
 infixl 7 _×_
@@ -99,11 +98,11 @@ infixl 7 _×_
 ×+distributive (successor x) y z = begin
   successor x × (y + z) ≡⟨⟩
   y + z + x × (y + z) ≡⟨ +associative y z (x × (y + z)) ⟩
-  y + (z + (x × (y + z))) ≡⟨ cong (λ e → y + (z + e)) (×+distributive x y z) ⟩
-  y + (z + (x × y + x × z)) ≡⟨ cong (λ e → y + e) (sym (+associative z (x × y) (x × z))) ⟩
-  y + (z + x × y + x × z) ≡⟨ cong (λ e → y + (e + (x × z))) (+commutative z (x × y)) ⟩
-  y + (x × y + z + x × z) ≡⟨ cong (λ e → y + e) (+associative (x × y) z (x × z)) ⟩
+  y + (z + (x × (y + z))) ≡⟨ congruence (λ e → y + (z + e)) (×+distributive x y z) ⟩
+  y + (z + (x × y + x × z)) ≡⟨ congruence (λ e → y + e) (symmetry (+associative z (x × y) (x × z))) ⟩
+  y + (z + x × y + x × z) ≡⟨ congruence (λ e → y + (e + (x × z))) (+commutative z (x × y)) ⟩
+  y + (x × y + z + x × z) ≡⟨ congruence (λ e → y + e) (+associative (x × y) z (x × z)) ⟩
   y + (x × y + (z + x × z)) ≡⟨⟩
-  y + (x × y + successor x × z) ≡⟨ sym (+associative y (x × y) (z + x × z)) ⟩
+  y + (x × y + successor x × z) ≡⟨ symmetry (+associative y (x × y) (z + x × z)) ⟩
   y + x × y + successor x × z ≡⟨⟩
   successor x × y + successor x × z ∎
