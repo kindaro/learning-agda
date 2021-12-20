@@ -224,3 +224,34 @@ right-absorption-of-× (successor x) = begin
   x ^ y × x ^ (y × z) ≡⟨ symmetry (^-distributes-over-+-into-×-on-the-left x y (y × z)) ⟩
   x ^ (y + y × z) ≡⟨ congruence (λ e → x ^ e) (symmetry (×-move y z)) ⟩
   x ^ (y × successor z) ∎
+
+morph-successor : ∀ (x : ℕ₂) → ℕ₂→ℕ (successor₂ x) ≡ successor (ℕ₂→ℕ x)
+morph-successor ₂ = reflexivity
+morph-successor (x ·) = begin
+  ℕ₂→ℕ (successor₂ (x ·)) ≡⟨⟩
+  ℕ₂→ℕ (x I) ≡⟨⟩
+  successor ((ℕ₂→ℕ x) × 2) ≡⟨⟩
+  successor (ℕ₂→ℕ (x ·)) ∎
+morph-successor (x I) = begin
+  ℕ₂→ℕ (successor₂ (x I)) ≡⟨⟩
+  ℕ₂→ℕ (successor₂ x ·) ≡⟨⟩
+  ℕ₂→ℕ (successor₂ x) × 2 ≡⟨ congruence (λ e → e × 2) (morph-successor x) ⟩
+  (1 + ℕ₂→ℕ x) × 2 ≡⟨ ×-distributes-over-+-on-the-right 1 (ℕ₂→ℕ x) 2 ⟩
+  2 + ℕ₂→ℕ x × 2 ≡⟨⟩
+  2 + ℕ₂→ℕ (x ·) ≡⟨⟩
+  1 + successor (ℕ₂→ℕ (x ·)) ≡⟨⟩
+  1 + successor (ℕ₂→ℕ x × 2) ≡⟨⟩
+  successor (ℕ₂→ℕ (x I)) ∎
+
+ℕ₂→ℕ-retracts-ℕ→ℕ₂ : ∀ (x : ℕ) → ℕ₂→ℕ (ℕ→ℕ₂ x) ≡ x
+ℕ₂→ℕ-retracts-ℕ→ℕ₂ zero = reflexivity
+ℕ₂→ℕ-retracts-ℕ→ℕ₂ (successor x) = begin
+  ℕ₂→ℕ (ℕ→ℕ₂ (successor x)) ≡⟨⟩
+  ℕ₂→ℕ (successor₂ (ℕ→ℕ₂ x)) ≡⟨ morph-successor (ℕ→ℕ₂ x) ⟩
+  successor (ℕ₂→ℕ (ℕ→ℕ₂ x)) ≡⟨ congruence (λ e → successor e) (ℕ₂→ℕ-retracts-ℕ→ℕ₂ x) ⟩
+  successor x ∎
+
+open import Data.Empty
+
+_ : ℕ→ℕ₂ (ℕ₂→ℕ (₂ ·)) ≢ ₂ ·
+_ = λ ( )

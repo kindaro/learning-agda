@@ -3,6 +3,7 @@ module Prelude where
 open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.PropositionalEquality.Core
+open import Relation.Binary.PropositionalEquality.Core using (_≢_) public
 open import Agda.Builtin.Equality using (refl)
 open import Agda.Builtin.Equality using (_≡_) public
 open ≡-Reasoning public
