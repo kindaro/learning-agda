@@ -99,12 +99,12 @@ infixl 7 _×_
   | +associative y x z
   = reflexivity
 
-×+distributive : ∀ (x y z : ℕ) → x × (y + z) ≡ x × y + x × z
-×+distributive zero y z = reflexivity
-×+distributive (successor x) y z = begin
+×-distributes-over-+-on-the-left : ∀ (x y z : ℕ) → x × (y + z) ≡ x × y + x × z
+×-distributes-over-+-on-the-left zero y z = reflexivity
+×-distributes-over-+-on-the-left (successor x) y z = begin
   successor x × (y + z) ≡⟨⟩
   y + z + x × (y + z) ≡⟨ +associative y z (x × (y + z)) ⟩
-  y + (z + (x × (y + z))) ≡⟨ congruence (λ e → y + (z + e)) (×+distributive x y z) ⟩
+  y + (z + (x × (y + z))) ≡⟨ congruence (λ e → y + (z + e)) (×-distributes-over-+-on-the-left x y z) ⟩
   y + (z + (x × y + x × z)) ≡⟨ congruence (λ e → y + e) (symmetry (+associative z (x × y) (x × z))) ⟩
   y + (z + x × y + x × z) ≡⟨ congruence (λ e → y + (e + (x × z))) (+commutative z (x × y)) ⟩
   y + (x × y + z + x × z) ≡⟨ congruence (λ e → y + e) (+associative (x × y) z (x × z)) ⟩
@@ -112,3 +112,58 @@ infixl 7 _×_
   y + (x × y + successor x × z) ≡⟨ symmetry (+associative y (x × y) (z + x × z)) ⟩
   y + x × y + successor x × z ≡⟨⟩
   successor x × y + successor x × z ∎
+
+×-distributes-over-+-on-the-right : ∀ (x y z : ℕ) → (x + y) × z ≡ x × z + y × z
+×-distributes-over-+-on-the-right zero y z = reflexivity
+×-distributes-over-+-on-the-right (successor x) y z = begin
+  (successor x + y) × z ≡⟨⟩
+  z + (x + y) × z ≡⟨ congruence (λ e → z + e) (×-distributes-over-+-on-the-right x y z) ⟩
+  z + (x × z + y × z) ≡⟨ symmetry (+associative z (x × z) (y × z)) ⟩
+  z + x × z + y × z ≡⟨⟩
+  successor x × z + y × z ∎
+
+×-is-associative : ∀ (x y z : ℕ) → x × (y × z) ≡ (x × y) × z
+×-is-associative zero y z = reflexivity
+×-is-associative (successor x) y z = begin
+  successor x × (y × z) ≡⟨⟩
+  y × z + x × (y × z) ≡⟨ congruence (λ e → ((y × z) + e)) (×-is-associative x y z) ⟩
+  y × z + x × y × z ≡⟨ symmetry (×-distributes-over-+-on-the-right y (x × y) z) ⟩
+  (y + x × y) × z ≡⟨⟩
+  successor x × y × z ∎
+
+left-identity-of-× : ∀ (x : ℕ) → 1 × x ≡ x
+left-identity-of-× x = begin
+  1 × x ≡⟨⟩
+  x + zero ≡⟨ +identity (x) ⟩
+  x ∎
+
+right-identity-of-× : ∀ (x : ℕ) → x × 1 ≡ x
+right-identity-of-× zero = reflexivity
+right-identity-of-× (successor x) = begin
+  successor x × 1 ≡⟨⟩
+  1 + (x × 1) ≡⟨ congruence (λ e → 1 + e) (right-identity-of-× x) ⟩
+  successor x ∎
+
+right-absorption-of-× : ∀ (x : ℕ) → x × zero ≡ zero
+right-absorption-of-× zero = reflexivity
+right-absorption-of-× (successor x) = begin
+  successor x × zero ≡⟨⟩
+  x × zero ≡⟨ right-absorption-of-× x ⟩
+  zero ∎
+
+×-move : ∀ (x y : ℕ) → x × successor y ≡ x + x × y
+×-move x y = begin
+  x × (1 + y) ≡⟨ ×-distributes-over-+-on-the-left x 1 y ⟩
+  x × 1 + x × y ≡⟨ congruence (λ e → e + x × y) (right-identity-of-× x) ⟩
+  x + x × y ∎
+
+×-is-commutative : ∀ (x y : ℕ) → x × y ≡ y × x
+×-is-commutative x zero = begin
+  x × zero ≡⟨ right-absorption-of-× x ⟩
+  zero ≡⟨⟩
+  zero × x ∎
+×-is-commutative x (successor y) = begin
+  x × successor y ≡⟨ ×-move x y ⟩
+  x + x × y ≡⟨ congruence (λ e → x + e) (×-is-commutative x y) ⟩
+  x + y × x ≡⟨⟩
+  successor y × x ∎
