@@ -2,12 +2,6 @@ module Natural_Numbers where
 
 open import Prelude
 
-data ℕ : Set where
-  zero : ℕ
-  successor : ℕ → ℕ
-
-{-# BUILTIN NATURAL ℕ #-}
-
 _+_ : ℕ → ℕ → ℕ
 zero + x = x
 successor y + x = successor (y + x)
@@ -251,7 +245,91 @@ morph-successor (x I) = begin
   successor (ℕ₂→ℕ (ℕ→ℕ₂ x)) ≡⟨ congruence (λ e → successor e) (ℕ₂→ℕ-retracts-ℕ→ℕ₂ x) ⟩
   successor x ∎
 
-open import Data.Empty
-
 _ : ℕ→ℕ₂ (ℕ₂→ℕ (₂ ·)) ≢ ₂ ·
-_ = λ ( )
+_ = λ ( ) where open import Data.Empty
+
++-is-congruent : ∀ {x y u v} → x ≡ y → u ≡ v → x + u ≡ y + v
++-is-congruent reflexivity reflexivity = reflexivity
+
+×-is-congruent : ∀ {x y u v} → x ≡ y → u ≡ v → x × u ≡ y × v
+×-is-congruent reflexivity reflexivity = reflexivity
+
+open import Algebra.Structures {A = ℕ} _≡_
+open import Data.Product using (_,_)
+open import Relation.Binary.PropositionalEquality.Properties using (isEquivalence)
+
++-isMagma : IsMagma _+_
++-isMagma = record
+  { isEquivalence = isEquivalence
+  ; ∙-cong        = +-is-congruent
+  }
+
++-isSemigroup : IsSemigroup _+_
++-isSemigroup = record
+  { isMagma = +-isMagma
+  ; assoc   = +associative
+  }
+
++-isCommutativeSemigroup : IsCommutativeSemigroup _+_
++-isCommutativeSemigroup = record
+  { isSemigroup = +-isSemigroup
+  ; comm        = +commutative
+  }
+
++-0-isMonoid : IsMonoid _+_ 0
++-0-isMonoid = record
+  { isSemigroup = +-isSemigroup
+  ; identity    = (λ _ → reflexivity) , +identity
+  }
+
++-0-isCommutativeMonoid : IsCommutativeMonoid _+_ 0
++-0-isCommutativeMonoid = record
+  { isMonoid = +-0-isMonoid
+  ; comm     = +commutative
+  }
+
+×-isMagma : IsMagma _×_
+×-isMagma = record
+  { isEquivalence = isEquivalence
+  ; ∙-cong        = ×-is-congruent
+  }
+
+×-isSemigroup : IsSemigroup _×_
+×-isSemigroup = record
+  { isMagma = ×-isMagma
+  ; assoc   = λ x y z → symmetry (×-is-associative x y z)
+  }
+
+×-isCommutativeSemigroup : IsCommutativeSemigroup _×_
+×-isCommutativeSemigroup = record
+  { isSemigroup = ×-isSemigroup
+  ; comm        = ×-is-commutative
+  }
+
+×-1-isMonoid : IsMonoid _×_ 1
+×-1-isMonoid = record
+  { isSemigroup = ×-isSemigroup
+  ; identity    = left-identity-of-× , right-identity-of-×
+  }
+
+×-1-isCommutativeMonoid : IsCommutativeMonoid _×_ 1
+×-1-isCommutativeMonoid = record
+  { isMonoid = ×-1-isMonoid
+  ; comm     = ×-is-commutative
+  }
+
++-×-isSemiring : IsSemiring _+_ _×_ 0 1
++-×-isSemiring = record
+  { isSemiringWithoutAnnihilatingZero = record
+    { +-isCommutativeMonoid = +-0-isCommutativeMonoid
+    ; *-isMonoid            = ×-1-isMonoid
+    ; distrib               = ×-distributes-over-+-on-the-left , λ x y z → ×-distributes-over-+-on-the-right y z x
+    }
+  ; zero = (λ _ → reflexivity) , right-absorption-of-×
+  }
+
++-×-isCommutativeSemiring : IsCommutativeSemiring _+_ _×_ 0 1
++-×-isCommutativeSemiring = record
+  { isSemiring = +-×-isSemiring
+  ; *-comm     = ×-is-commutative
+  }
