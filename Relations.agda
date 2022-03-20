@@ -112,9 +112,9 @@ three-way zero zero = of-even-size reflexivity
 three-way zero (successor y) = smaller (defer-to-≤ (successor-x-≤-successor-y zero-≤-x))
 three-way (successor x) zero = bigger (defer-to-≤ (successor-x-≤-successor-y zero-≤-x))
 three-way (successor x) (successor y) with three-way x y
-... | smaller (defer-to-≤ evidence) = smaller (defer-to-≤ (successor-x-≤-successor-y evidence))
+… | smaller (defer-to-≤ evidence) = smaller (defer-to-≤ (successor-x-≤-successor-y evidence))
 … | of-even-size evidence = of-even-size (congruence successor evidence)
-... | bigger (defer-to-≤ evidence) = bigger (defer-to-≤ (successor-x-≤-successor-y evidence))
+… | bigger (defer-to-≤ evidence) = bigger (defer-to-≤ (successor-x-≤-successor-y evidence))
 
 weaken-<-rightwards : ∀ (x y : ℕ) → x < y → x < successor y
 weaken-<-rightwards x y (defer-to-≤ evidence) = defer-to-≤ (weaken-≤-rightwards (successor x) y evidence)
@@ -171,7 +171,7 @@ even'→even : ∀ {x} → even' x → even x
 even'→even zero-is-even = truly-even zero
 even'→even (successor-is-even one-is-odd) = truly-even 1
 even'→even (next-even evidence) with even'→even evidence
-even'→even (next-even evidence) | truly-even times-2 = truly-even (successor times-2)
+… | truly-even times-2 = truly-even (successor times-2)
 
 even→even' : ∀ {x} → even x → even' x
 even→even' {zero} _ = zero-is-even
@@ -194,3 +194,65 @@ open import Data.List using (_∷_; [])
 even-the-odds : ∀ {x y} → x ≡ y by 2 → even (x + y)
 even-the-odds (congruent times-x times-y remainder reflexivity reflexivity)
   = congruent (times-x + times-y + remainder) zero zero (solve (remainder ∷ times-x ∷ times-y ∷ []) ring) reflexivity
+
+data ends-in-I : ℕ₂ → Set
+  where
+    I-ends-in-I : ends-in-I (₂ I)
+    recursive-· : ∀ {n} → ends-in-I n → ends-in-I (n ·)
+    recursive-I : ∀ {n} → ends-in-I n → ends-in-I (n I)
+
+data is-canonical : ℕ₂ → Set
+  where
+    canonical-zero : is-canonical (₂)
+    canonical : ∀ {n} → ends-in-I n → is-canonical n
+
+_ : is-canonical (₂ I · I)
+_ = canonical (recursive-I (recursive-· I-ends-in-I))
+
+successor₂-ends-in-I : ∀ {n} → ends-in-I n → ends-in-I (successor₂ n)
+successor₂-ends-in-I I-ends-in-I = recursive-· I-ends-in-I
+successor₂-ends-in-I (recursive-· evidence) = recursive-I evidence
+successor₂-ends-in-I (recursive-I evidence) = recursive-· (successor₂-ends-in-I evidence)
+
+successor₂-respects-canonicity : ∀ {n} → is-canonical n → is-canonical (successor₂ n)
+successor₂-respects-canonicity canonical-zero = canonical I-ends-in-I
+successor₂-respects-canonicity (canonical evidence) = canonical (successor₂-ends-in-I evidence)
+
+conversion-is-canonical : ∀ n → is-canonical (ℕ→ℕ₂ n)
+conversion-is-canonical zero = canonical-zero
+conversion-is-canonical (successor n) = successor₂-respects-canonicity (conversion-is-canonical n)
+
+if-n₂-ends-in-I-it-is-never-zero : ∀ n₂ → ends-in-I n₂ → zero < ℕ₂→ℕ n₂
+if-n₂-ends-in-I-it-is-never-zero ₂ ( )
+if-n₂-ends-in-I-it-is-never-zero (.₂ I) I-ends-in-I = defer-to-≤ (successor-x-≤-successor-y zero-≤-x)
+if-n₂-ends-in-I-it-is-never-zero (n₂ I) (recursive-I evidence) = defer-to-≤ (successor-x-≤-successor-y zero-≤-x)
+if-n₂-ends-in-I-it-is-never-zero (n₂ ·) (recursive-· evidence) with (if-n₂-ends-in-I-it-is-never-zero n₂ evidence)
+… | defer-to-≤ recursive-evidence = recurse recursive-evidence
+  where
+    recurse
+      = defer-to-≤
+      ∘ weaken-≤-leftwards 1 (ℕ₂→ℕ n₂ × 2)
+      ∘ ×-is-≤-monotone-on-the-left 1 (ℕ₂→ℕ n₂) 2
+
+reverse-absorption : ∀ n → n × 2 ≡ 0 → n ≡ 0
+reverse-absorption zero reflexivity = reflexivity
+reverse-absorption (successor n) ( )
+
+ℕ₂→ℕ≡0 : ∀ n₂ → is-canonical n₂ → ℕ₂→ℕ n₂ ≡ 0 → n₂ ≡ ₂
+ℕ₂→ℕ≡0 .₂ canonical-zero evidence-of-equality = reflexivity
+ℕ₂→ℕ≡0 (n₂ ·) (canonical (recursive-· evidence)) evidence-of-equality with if-n₂-ends-in-I-it-is-never-zero n₂ evidence
+… | defer-to-≤ evidence-of-inequality with reverse-absorption (ℕ₂→ℕ n₂) evidence-of-equality
+… | simpler-evidence-of-equality with ℕ₂→ℕ n₂
+ℕ₂→ℕ≡0 (n₂ ·) (canonical (recursive-· evidence)) evidence-of-equality | defer-to-≤ ( ) | simpler-evidence-of-equality | zero
+ℕ₂→ℕ≡0 (n₂ ·) (canonical (recursive-· evidence)) evidence-of-equality | defer-to-≤ evidence-of-inequality | ( ) | successor n
+
+canonical-is-fixed-of-identity : ∀ {n₂} → is-canonical n₂ → n₂ ≡ ℕ→ℕ₂ (ℕ₂→ℕ n₂)
+canonical-is-fixed-of-identity {n} evidence with ℕ₂→ℕ n in equation
+canonical-is-fixed-of-identity {₂} evidence | zero = reflexivity
+canonical-is-fixed-of-identity {n₂ ·} (canonical evidence) | zero with  if-n₂-ends-in-I-it-is-never-zero (n₂ ·) evidence
+... | defer-to-≤ contradiction with reverse-absorption (ℕ₂→ℕ n₂) equation
+… | simpler-equation with n₂
+... | n₂' · = {!!}
+canonical-is-fixed-of-identity {n₂ ·} (canonical evidence) | successor n = let contradiction = if-n₂-ends-in-I-it-is-never-zero (n₂ ·) evidence in {!!}
+canonical-is-fixed-of-identity {n₂ I} (canonical evidence) | zero = let contradiction = if-n₂-ends-in-I-it-is-never-zero (n₂ I) evidence in {!!}
+canonical-is-fixed-of-identity {n₂ I} (canonical evidence) | successor n = let contradiction = if-n₂-ends-in-I-it-is-never-zero (n₂ I) evidence in {!!}
