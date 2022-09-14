@@ -1,6 +1,7 @@
 module Natural_Numbers where
 
-open import Prelude
+open import Prelude hiding (_×_)
+open ℕ using (zero; successor)
 
 _+_ : ℕ → ℕ → ℕ
 zero + x = x
@@ -78,10 +79,16 @@ _ = reflexivity
 +identity (successor x) = begin successor (x + zero)
   ≡⟨ congruence successor (+identity x) ⟩ successor x ∎
 
+cancel-zero-on-the-right : ∀ {x : ℕ} → x + zero ≡ x
+cancel-zero-on-the-right {x} = +identity x
+
 +successor-move : ∀ (x y : ℕ) → x + successor y ≡ successor (x + y)
 +successor-move zero y = reflexivity
 +successor-move (successor x) y = begin successor x + successor y
   ≡⟨ congruence successor (+successor-move x y) ⟩ successor (successor x + y) ∎
+
+commute-successor : ∀ (x y : ℕ) → x + successor y ≡ successor (x + y)
+commute-successor = +successor-move
 
 +commutative : ∀ (x y : ℕ) → x + y ≡ y + x
 +commutative x zero = begin x + zero ≡⟨ +identity x ⟩ zero + x ∎
@@ -237,12 +244,12 @@ morph-successor (x I) = begin
   1 + successor (ℕ₂→ℕ x × 2) ≡⟨⟩
   successor (ℕ₂→ℕ (x I)) ∎
 
-ℕ₂→ℕ-retracts-ℕ→ℕ₂ : ∀ (x : ℕ) → ℕ₂→ℕ (ℕ→ℕ₂ x) ≡ x
-ℕ₂→ℕ-retracts-ℕ→ℕ₂ zero = reflexivity
-ℕ₂→ℕ-retracts-ℕ→ℕ₂ (successor x) = begin
+ℕ₂→ℕ-retracts-ℕ→ℕ₂ : ∀ {x : ℕ} → ℕ₂→ℕ (ℕ→ℕ₂ x) ≡ x
+ℕ₂→ℕ-retracts-ℕ→ℕ₂ {zero} = reflexivity
+ℕ₂→ℕ-retracts-ℕ→ℕ₂ {successor x} = begin
   ℕ₂→ℕ (ℕ→ℕ₂ (successor x)) ≡⟨⟩
   ℕ₂→ℕ (successor₂ (ℕ→ℕ₂ x)) ≡⟨ morph-successor (ℕ→ℕ₂ x) ⟩
-  successor (ℕ₂→ℕ (ℕ→ℕ₂ x)) ≡⟨ congruence (λ e → successor e) (ℕ₂→ℕ-retracts-ℕ→ℕ₂ x) ⟩
+  successor (ℕ₂→ℕ (ℕ→ℕ₂ x)) ≡⟨ congruence (λ e → successor e) (ℕ₂→ℕ-retracts-ℕ→ℕ₂ {x}) ⟩
   successor x ∎
 
 _ : ℕ→ℕ₂ (ℕ₂→ℕ (₂ ·)) ≢ ₂ ·
